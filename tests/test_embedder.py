@@ -23,7 +23,7 @@ class TestOllamaEmbedder:
         """단일 텍스트 임베딩."""
         vec = await embedder.embed("hello world")
         assert isinstance(vec, list)
-        assert len(vec) == 768
+        assert len(vec) == 1024
         assert all(isinstance(v, float) for v in vec)
 
     @pytest.mark.asyncio
@@ -32,7 +32,7 @@ class TestOllamaEmbedder:
         texts = ["hello", "world", "test"]
         vecs = await embedder.embed_batch(texts)
         assert len(vecs) == 3
-        assert all(len(v) == 768 for v in vecs)
+        assert all(len(v) == 1024 for v in vecs)
 
     @pytest.mark.asyncio
     async def test_embed_batch_empty(self, embedder: OllamaEmbedder):

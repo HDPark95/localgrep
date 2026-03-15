@@ -6,19 +6,19 @@ from pathlib import Path
 from localgrep.store import Chunk, SearchResult, VectorStore
 
 
-def _dummy_embedding(dim: int = 768, val: float = 0.1) -> list[float]:
+def _dummy_embedding(dim: int = 1024, val: float = 0.1) -> list[float]:
     """정규화된 더미 임베딩 벡터 생성."""
     vec = [val] * dim
     norm = math.sqrt(sum(v * v for v in vec))
     return [v / norm for v in vec]
 
 
-def _similar_embedding(dim: int = 768) -> list[float]:
+def _similar_embedding(dim: int = 1024) -> list[float]:
     """_dummy_embedding과 유사한 벡터."""
     return _dummy_embedding(dim, val=0.1)
 
 
-def _different_embedding(dim: int = 768) -> list[float]:
+def _different_embedding(dim: int = 1024) -> list[float]:
     """_dummy_embedding과 다른 벡터."""
     vec = [0.0] * dim
     vec[0] = 1.0  # 완전히 다른 방향

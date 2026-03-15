@@ -18,7 +18,7 @@ def test_default_config():
     """기본 설정값이 SPEC과 일치하는지 확인."""
     cfg = LocalGrepConfig()
     assert cfg.ollama.host == "http://localhost:11434"
-    assert cfg.ollama.model == "nomic-embed-text"
+    assert cfg.ollama.model == "mxbai-embed-large"
     assert cfg.chunking.max_lines == 100
     assert cfg.chunking.overlap_lines == 10
     assert cfg.chunking.min_lines == 3
@@ -30,7 +30,7 @@ def test_default_config():
 def test_load_config_no_file(tmp_path: Path):
     """설정 파일 없으면 기본값 반환."""
     cfg = load_config(tmp_path)
-    assert cfg.ollama.model == "nomic-embed-text"
+    assert cfg.ollama.model == "mxbai-embed-large"
 
 
 def test_save_and_load_config(tmp_path: Path):

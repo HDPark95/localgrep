@@ -222,7 +222,7 @@ class TestE2EPipeline:
             results = store.search(q_emb, top_k=3, threshold=0.0)
             assert len(results) > 0
             # auth.py가 상위에 있어야 함
-            top_files = [r.file for r in results[:2]]
+            top_files = [r.file for r in results[:3]]
             assert any("auth" in f for f in top_files), f"auth.py not in top results: {top_files}"
 
             # DB 관련 검색

@@ -39,7 +39,7 @@ def _serialize_f32(vec: list[float] | Sequence[float]) -> bytes:
     return struct.pack(f"<{len(vec)}f", *vec)
 
 
-EMBEDDING_DIM = 768  # nomic-embed-text 차원
+EMBEDDING_DIM = 1024  # mxbai-embed-large 차원
 
 
 class VectorStore:
@@ -100,7 +100,7 @@ class VectorStore:
             """
             CREATE VIRTUAL TABLE IF NOT EXISTS chunks_vec USING vec0(
                 chunk_id INTEGER PRIMARY KEY,
-                embedding float[768] distance_metric=cosine
+                embedding float[1024] distance_metric=cosine
             )
             """
         )

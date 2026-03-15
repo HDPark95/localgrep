@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +28,21 @@ app = typer.Typer(
     help="로컬 임베딩 모델(Ollama)을 사용한 시맨틱 코드 검색 CLI.",
 )
 console = Console()
+
+
+def _hyde_transform(query: str) -> str:
+    """쿼리를 HyDE 형태로 변환. 원본 쿼리 + 가상 코드 스니펫."""
+    words = re.findall(r'[a-z]+', query.lower())
+    func_name = "_".join(words[:4])
+    params = ", ".join(words[4:7]) if len(words) > 4 else "data"
+
+    hypothetical = f'''def {func_name}({params}):
+    """{query}"""
+    # Implementation for {query}
+    {" ".join(words)}
+    return result
+'''
+    return f"{query}\n\n{hypothetical}"
 
 
 def _resolve_root(path: Optional[Path]) -> Path:
@@ -195,7 +211,8 @@ def search(
 
     try:
         start = time.monotonic()
-        query_embedding = asyncio.run(_embed_and_close(query))
+        hyde_query = _hyde_transform(query)
+        query_embedding = asyncio.run(_embed_and_close(hyde_query))
         results = store.search(
             query_embedding,
             top_k=top_k,

@@ -17,7 +17,7 @@ class OllamaConfig:
     """
 
     host: str = "http://localhost:11434"
-    model: str = "nomic-embed-text"
+    model: str = "mxbai-embed-large"
 
 
 @dataclass

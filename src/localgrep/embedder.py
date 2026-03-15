@@ -14,13 +14,13 @@ class OllamaEmbedder:
 
     Attributes:
         host: Ollama 서버 주소 (기본: http://localhost:11434).
-        model: 임베딩 모델 이름 (기본: nomic-embed-text).
-        dimension: 임베딩 벡터 차원 수 (nomic-embed-text = 768).
+        model: 임베딩 모델 이름 (기본: mxbai-embed-large).
+        dimension: 임베딩 벡터 차원 수 (mxbai-embed-large = 1024).
     """
 
     DEFAULT_HOST = "http://localhost:11434"
-    DEFAULT_MODEL = "nomic-embed-text"
-    DIMENSION = 768
+    DEFAULT_MODEL = "mxbai-embed-large"
+    DIMENSION = 1024
 
     def __init__(
         self,
@@ -56,7 +56,7 @@ class OllamaEmbedder:
             text: 임베딩할 텍스트.
 
         Returns:
-            768차원 float 벡터.
+            1024차원 float 벡터.
 
         Raises:
             OllamaEmbedderError: Ollama 서버 연결 실패 또는 API 에러 시.
