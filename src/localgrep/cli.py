@@ -120,7 +120,7 @@ def index(
         raise typer.Exit(1)
     finally:
         store.close()
-        asyncio.run(embedder.close())
+        # embedder는 _index_files 내에서 이미 정리됨 (또는 사용 안 됨)
 
 
 async def _index_files(
@@ -160,6 +160,8 @@ async def _index_files(
         if (i + 1) % 10 == 0:
             console.print(f"  진행: {i + 1}/{len(files)}")
 
+    await embedder.close()
+
 
 @app.command()
 def search(
@@ -185,9 +187,15 @@ def search(
         model=config.ollama.model,
     )
 
+    async def _embed_and_close(text: str) -> list[float]:
+        try:
+            return await embedder.embed(text)
+        finally:
+            await embedder.close()
+
     try:
         start = time.monotonic()
-        query_embedding = asyncio.run(embedder.embed(query))
+        query_embedding = asyncio.run(_embed_and_close(query))
         results = store.search(
             query_embedding,
             top_k=top_k,
@@ -258,7 +266,6 @@ def search(
         raise typer.Exit(1)
     finally:
         store.close()
-        asyncio.run(embedder.close())
 
 
 @app.command()

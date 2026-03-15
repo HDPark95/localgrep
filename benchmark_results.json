@@ -1,0 +1,265 @@
+{
+  "summary": {
+    "queries": 10,
+    "project_files": 21,
+    "semantic_total_tokens": 17213,
+    "grep_total_tokens": 90936,
+    "token_savings_pct": 81.1,
+    "semantic_avg_tokens": 1721,
+    "grep_avg_tokens": 9093,
+    "semantic_avg_ms": 25,
+    "grep_avg_ms": 55
+  },
+  "details": [
+    {
+      "query": "vector similarity search implementation",
+      "grep_pattern": "vector|similarity|cosine|distance",
+      "semantic": {
+        "results": 5,
+        "total_chars": 6284,
+        "est_tokens": 1571,
+        "time_ms": 63,
+        "top_score": 0.587,
+        "files": [
+          "src/localgrep/server.py:41-90",
+          "src/localgrep/server.py:41-90",
+          "README.md:41-90",
+          "README.md:41-90",
+          "README.md:161-210"
+        ]
+      },
+      "grep": {
+        "results": 190,
+        "total_chars": 17995,
+        "est_tokens": 4498,
+        "time_ms": 480,
+        "lines": 225
+      }
+    },
+    {
+      "query": "how does file crawling work with gitignore",
+      "grep_pattern": "gitignore|crawl|ignore|walk",
+      "semantic": {
+        "results": 5,
+        "total_chars": 7158,
+        "est_tokens": 1789,
+        "time_ms": 39,
+        "top_score": 0.671,
+        "files": [
+          "src/localgrep/crawler.py:1-50",
+          "src/localgrep/crawler.py:1-50",
+          "src/localgrep/crawler.py:41-90",
+          "src/localgrep/crawler.py:41-90",
+          "src/localgrep/crawler.py:121-170"
+        ]
+      },
+      "grep": {
+        "results": 299,
+        "total_chars": 28698,
+        "est_tokens": 7174,
+        "time_ms": 10,
+        "lines": 336
+      }
+    },
+    {
+      "query": "embedding generation from text",
+      "grep_pattern": "embed|embedding|ollama|vector",
+      "semantic": {
+        "results": 5,
+        "total_chars": 8581,
+        "est_tokens": 2145,
+        "time_ms": 27,
+        "top_score": 0.63,
+        "files": [
+          "src/localgrep/embedder.py:81-130",
+          "src/localgrep/embedder.py:81-130",
+          "src/localgrep/embedder.py:41-90",
+          "src/localgrep/embedder.py:41-90",
+          "tests/test_e2e.py:201-250"
+        ]
+      },
+      "grep": {
+        "results": 726,
+        "total_chars": 68616,
+        "est_tokens": 17154,
+        "time_ms": 9,
+        "lines": 814
+      }
+    },
+    {
+      "query": "chunking strategy for source code",
+      "grep_pattern": "chunk|split|window|overlap",
+      "semantic": {
+        "results": 5,
+        "total_chars": 6554,
+        "est_tokens": 1638,
+        "time_ms": 21,
+        "top_score": 0.691,
+        "files": [
+          "src/localgrep/chunker.py:201-237",
+          "src/localgrep/chunker.py:201-237",
+          "src/localgrep/chunker.py:121-170",
+          "src/localgrep/chunker.py:121-170",
+          "tests/test_chunker.py:1-50"
+        ]
+      },
+      "grep": {
+        "results": 799,
+        "total_chars": 77776,
+        "est_tokens": 19444,
+        "time_ms": 9,
+        "lines": 890
+      }
+    },
+    {
+      "query": "MCP server tool definitions",
+      "grep_pattern": "mcp|tool|server|semantic_search",
+      "semantic": {
+        "results": 5,
+        "total_chars": 6231,
+        "est_tokens": 1557,
+        "time_ms": 19,
+        "top_score": 0.544,
+        "files": [
+          "src/localgrep/server.py:41-90",
+          "src/localgrep/server.py:41-90",
+          "src/localgrep/server.py:241-280",
+          "src/localgrep/server.py:241-280",
+          "src/localgrep/server.py:121-170"
+        ]
+      },
+      "grep": {
+        "results": 100,
+        "total_chars": 8900,
+        "est_tokens": 2225,
+        "time_ms": 8,
+        "lines": 115
+      }
+    },
+    {
+      "query": "database schema and migrations",
+      "grep_pattern": "schema|CREATE TABLE|migrate|sqlite",
+      "semantic": {
+        "results": 5,
+        "total_chars": 6378,
+        "est_tokens": 1594,
+        "time_ms": 17,
+        "top_score": 0.589,
+        "files": [
+          "src/localgrep/store.py:41-90",
+          "src/localgrep/store.py:41-90",
+          "README.md:41-90",
+          "README.md:41-90",
+          "README.md:161-210"
+        ]
+      },
+      "grep": {
+        "results": 84,
+        "total_chars": 7506,
+        "est_tokens": 1876,
+        "time_ms": 8,
+        "lines": 95
+      }
+    },
+    {
+      "query": "CLI command line interface",
+      "grep_pattern": "typer|command|app.command|cli",
+      "semantic": {
+        "results": 5,
+        "total_chars": 6256,
+        "est_tokens": 1564,
+        "time_ms": 16,
+        "top_score": 0.542,
+        "files": [
+          "SPEC.md:321-370",
+          "SPEC.md:321-370",
+          "setup.sh:41-90",
+          "setup.sh:41-90",
+          "SPEC.md:41-90"
+        ]
+      },
+      "grep": {
+        "results": 189,
+        "total_chars": 18994,
+        "est_tokens": 4748,
+        "time_ms": 8,
+        "lines": 217
+      }
+    },
+    {
+      "query": "configuration file loading",
+      "grep_pattern": "config|load_config|save_config|json",
+      "semantic": {
+        "results": 5,
+        "total_chars": 5453,
+        "est_tokens": 1363,
+        "time_ms": 16,
+        "top_score": 0.588,
+        "files": [
+          "tests/test_config.py:1-50",
+          "tests/test_config.py:1-50",
+          "tests/test_config.py:41-59",
+          "tests/test_config.py:41-59",
+          "src/localgrep/server.py:161-210"
+        ]
+      },
+      "grep": {
+        "results": 382,
+        "total_chars": 35065,
+        "est_tokens": 8766,
+        "time_ms": 7,
+        "lines": 426
+      }
+    },
+    {
+      "query": "incremental indexing changed files",
+      "grep_pattern": "incremental|changed|upsert|mtime|hash",
+      "semantic": {
+        "results": 5,
+        "total_chars": 8034,
+        "est_tokens": 2008,
+        "time_ms": 21,
+        "top_score": 0.674,
+        "files": [
+          "tests/test_e2e.py:241-290",
+          "tests/test_e2e.py:241-290",
+          "src/localgrep/server.py:121-170",
+          "src/localgrep/server.py:121-170",
+          "src/localgrep/dashboard.py:281-330"
+        ]
+      },
+      "grep": {
+        "results": 327,
+        "total_chars": 32483,
+        "est_tokens": 8120,
+        "time_ms": 8,
+        "lines": 372
+      }
+    },
+    {
+      "query": "search result scoring and ranking",
+      "grep_pattern": "score|threshold|top_k|ranking|search",
+      "semantic": {
+        "results": 5,
+        "total_chars": 7936,
+        "est_tokens": 1984,
+        "time_ms": 15,
+        "top_score": 0.631,
+        "files": [
+          "src/localgrep/server.py:81-130",
+          "src/localgrep/server.py:81-130",
+          "src/localgrep/cli.py:201-250",
+          "src/localgrep/analytics.py:161-210",
+          "src/localgrep/analytics.py:161-210"
+        ]
+      },
+      "grep": {
+        "results": 671,
+        "total_chars": 67724,
+        "est_tokens": 16931,
+        "time_ms": 8,
+        "lines": 751
+      }
+    }
+  ]
+}
