@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "localgrep"
+version = "0.1.0"
+description = "로컬 임베딩 모델(Ollama)을 사용한 시맨틱 코드 검색 CLI + MCP 서버"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "typer>=0.9",
+    "httpx>=0.25",
+    "sqlite-vec>=0.1",
+    "watchfiles>=0.21",
+    "gitignorefile>=1.1",
+    "tree-sitter>=0.21",
+    "mcp>=1.0",
+    "rich>=13.0",
+    "fastapi>=0.104",
+    "uvicorn>=0.24",
+]
+
+[project.scripts]
+localgrep = "localgrep.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/localgrep"]
