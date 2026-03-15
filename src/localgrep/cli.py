@@ -342,43 +342,42 @@ def dashboard(
 
 
 @app.command("install-claude")
-def install_claude() -> None:
+def install_claude(
+    scope: str = typer.Option("user", "--scope", "-s", help="설정 범위: user(글로벌) 또는 project(프로젝트별)"),
+) -> None:
     """Claude Code MCP 설정과 CLAUDE.md 검색 가이드를 자동 구성한다."""
-    claude_dir = Path.home() / ".claude"
+    import shutil
+    import subprocess
 
-    if not claude_dir.exists():
-        claude_dir.mkdir(parents=True, exist_ok=True)
-        console.print(f"[dim]디렉토리 생성: {claude_dir}[/dim]")
+    # ── 1. claude mcp add 로 MCP 서버 등록 ──────────────────────────
+    claude_bin = shutil.which("claude")
+    if claude_bin is None:
+        console.print("[red]Claude Code CLI를 찾을 수 없습니다.[/red]")
+        console.print("Claude Code가 설치되어 있는지 확인하세요: https://claude.ai/claude-code")
+        raise typer.Exit(1)
 
-    # ── 1. mcp.json 설정 ──────────────────────────────────────────────
-    mcp_json_path = claude_dir / "mcp.json"
+    localgrep_bin = shutil.which("localgrep")
+    if localgrep_bin is None:
+        console.print("[red]localgrep이 PATH에 없습니다.[/red]")
+        raise typer.Exit(1)
 
-    if mcp_json_path.exists():
-        try:
-            mcp_data = json.loads(mcp_json_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            mcp_data = {}
-    else:
-        mcp_data = {}
-
-    if "mcpServers" not in mcp_data:
-        mcp_data["mcpServers"] = {}
-
-    mcp_data["mcpServers"]["localgrep"] = {
-        "command": "localgrep",
-        "args": ["serve"],
-        "env": {
-            "OLLAMA_HOST": "http://localhost:11434",
-        },
-    }
-
-    mcp_json_path.write_text(
-        json.dumps(mcp_data, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    console.print(f"[green]MCP 설정 완료:[/green] {mcp_json_path}")
+    scope_flag = "-s" if scope == "user" else "-s"
+    try:
+        result = subprocess.run(
+            [claude_bin, "mcp", "add", "-s", scope, "localgrep", "--", localgrep_bin, "serve"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode == 0:
+            console.print(f"[green]MCP 서버 등록 완료[/green] (scope: {scope})")
+        else:
+            console.print(f"[yellow]claude mcp add 결과:[/yellow] {result.stderr or result.stdout}")
+    except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+        console.print(f"[red]claude mcp add 실패:[/red] {e}")
+        raise typer.Exit(1)
 
     # ── 2. CLAUDE.md 가이드 추가 ──────────────────────────────────────
+    claude_dir = Path.home() / ".claude"
+    claude_dir.mkdir(parents=True, exist_ok=True)
     claude_md_path = claude_dir / "CLAUDE.md"
 
     search_guide = """\

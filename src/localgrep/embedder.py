@@ -87,12 +87,17 @@ class OllamaEmbedder:
             all_embeddings.extend(embeddings)
         return all_embeddings
 
+    # nomic-embed-text 컨텍스트: 8192 토큰 ≈ ~24000 문자 (안전하게 20000)
+    MAX_INPUT_CHARS = 20000
+
     async def _request_embed(self, inputs: list[str]) -> list[list[float]]:
         """Ollama /api/embed 엔드포인트를 호출한다."""
+        # 컨텍스트 초과 방지: 긴 텍스트는 잘라냄
+        truncated = [t[:self.MAX_INPUT_CHARS] if len(t) > self.MAX_INPUT_CHARS else t for t in inputs]
         client = await self._get_client()
         payload = {
             "model": self.model,
-            "input": inputs,
+            "input": truncated,
         }
         try:
             response = await client.post("/api/embed", json=payload)
@@ -107,13 +112,26 @@ class OllamaEmbedder:
                 "모델이 로딩 중일 수 있습니다. 잠시 후 다시 시도하세요."
             ) from e
 
+        if response.status_code == 404:
+            raise OllamaEmbedderError(
+                f"모델 '{self.model}'을 찾을 수 없습니다. "
+                f"먼저 모델을 다운로드하세요: ollama pull {self.model}"
+            )
+
+        if response.status_code == 400 and len(truncated) > 1:
+            # 배치 중 일부가 컨텍스트 초과 → 개별 처리 fallback
+            results: list[list[float]] = []
+            for single in truncated:
+                try:
+                    emb = await self._request_embed_single(single)
+                    results.append(emb)
+                except OllamaEmbedderError:
+                    # 개별 텍스트도 실패하면 제로 벡터
+                    results.append([0.0] * self.DIMENSION)
+            return results
+
         if response.status_code != 200:
             body = response.text
-            if response.status_code == 404:
-                raise OllamaEmbedderError(
-                    f"모델 '{self.model}'을 찾을 수 없습니다. "
-                    f"먼저 모델을 다운로드하세요: ollama pull {self.model}"
-                )
             raise OllamaEmbedderError(
                 f"Ollama API 에러 (HTTP {response.status_code}): {body}"
             )
@@ -125,6 +143,19 @@ class OllamaEmbedder:
                 f"Ollama 응답에 'embeddings' 필드가 없습니다: {data}"
             )
         return embeddings
+
+    async def _request_embed_single(self, text: str) -> list[float]:
+        """단일 텍스트 임베딩. 실패 시 더 짧게 잘라서 재시도."""
+        for max_chars in [self.MAX_INPUT_CHARS, 10000, 5000, 2000]:
+            truncated = text[:max_chars]
+            client = await self._get_client()
+            payload = {"model": self.model, "input": [truncated]}
+            response = await client.post("/api/embed", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                return data["embeddings"][0]
+        # 모든 시도 실패
+        return [0.0] * self.DIMENSION
 
     async def health_check(self) -> bool:
         """Ollama 서버 연결 상태를 확인한다.
