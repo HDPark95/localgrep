@@ -36,6 +36,10 @@ class Chunk:
 # SPEC Phase 1: 슬라이딩 윈도우 기본, AST 청킹 기본값 50줄
 DEFAULT_WINDOW_LINES = 50
 
+# nomic-embed-text 컨텍스트: 8192 토큰. 안전하게 문자 수 제한.
+# 헤더(파일경로:줄번호) 포함하므로 여유를 둠.
+DEFAULT_MAX_CHARS = 6000
+
 
 class SlidingWindowChunker:
     """슬라이딩 윈도우 방식으로 텍스트를 청킹한다 (폴백 전략).
@@ -47,6 +51,7 @@ class SlidingWindowChunker:
         window_lines: 기본 윈도우 크기 (기본: 50).
         overlap_lines: 청크 간 오버랩 줄 수 (기본: 10).
         min_lines: 최소 청크 줄 수, 미만이면 이전 청크에 병합 (기본: 3).
+        max_chars: 청크 최대 문자 수 (기본: 6000). 임베딩 컨텍스트 초과 방지.
     """
 
     def __init__(
@@ -55,6 +60,7 @@ class SlidingWindowChunker:
         window_lines: int = DEFAULT_WINDOW_LINES,
         overlap_lines: int = 10,
         min_lines: int = 3,
+        max_chars: int = DEFAULT_MAX_CHARS,
     ) -> None:
         """SlidingWindowChunker를 초기화한다.
 
@@ -63,11 +69,13 @@ class SlidingWindowChunker:
             window_lines: 기본 윈도우 크기.
             overlap_lines: 청크 간 오버랩 줄 수.
             min_lines: 최소 청크 줄 수.
+            max_chars: 청크 최대 문자 수.
         """
         self.max_lines = max_lines
         self.window_lines = window_lines
         self.overlap_lines = overlap_lines
         self.min_lines = min_lines
+        self.max_chars = max_chars
 
     def chunk(self, file_path: str, content: str) -> list[Chunk]:
         """텍스트를 슬라이딩 윈도우 방식으로 청크 리스트로 분할한다.
@@ -97,21 +105,53 @@ class SlidingWindowChunker:
             chunks = self._sliding_window(file_path, lines, total)
 
         # max_lines 초과 청크 강제 분할
-        result: list[Chunk] = []
+        split_by_lines: list[Chunk] = []
         for c in chunks:
             c_lines = c.content.splitlines(keepends=True)
             if len(c_lines) <= self.max_lines:
-                result.append(c)
+                split_by_lines.append(c)
             else:
                 for i in range(0, len(c_lines), self.max_lines):
                     sub = c_lines[i : i + self.max_lines]
                     sub_start = c.start_line + i
                     sub_end = sub_start + len(sub) - 1
-                    result.append(Chunk(
+                    split_by_lines.append(Chunk(
                         file_path=file_path,
                         start_line=sub_start,
                         end_line=sub_end,
                         content="".join(sub),
+                    ))
+
+        # max_chars 초과 청크 추가 분할 (minified JS 등 긴 줄 대응)
+        result: list[Chunk] = []
+        for c in split_by_lines:
+            if len(c.content) <= self.max_chars:
+                result.append(c)
+            else:
+                # 줄 단위로 분할하되 문자 수 제한 준수
+                c_lines = c.content.splitlines(keepends=True)
+                buf: list[str] = []
+                buf_start = c.start_line
+                buf_chars = 0
+                for j, line in enumerate(c_lines):
+                    if buf_chars + len(line) > self.max_chars and buf:
+                        result.append(Chunk(
+                            file_path=file_path,
+                            start_line=buf_start,
+                            end_line=buf_start + len(buf) - 1,
+                            content="".join(buf),
+                        ))
+                        buf = []
+                        buf_start = c.start_line + j
+                        buf_chars = 0
+                    buf.append(line)
+                    buf_chars += len(line)
+                if buf:
+                    result.append(Chunk(
+                        file_path=file_path,
+                        start_line=buf_start,
+                        end_line=buf_start + len(buf) - 1,
+                        content="".join(buf),
                     ))
         return result
 
