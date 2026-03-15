@@ -200,10 +200,12 @@ async def reindex(path: str | None = None, full: bool = False) -> dict:
         start = time.monotonic()
         indexed_count = 0
 
+        skipped = 0
         for file_info in files:
             try:
                 content = file_info.path.read_text(encoding="utf-8", errors="replace")
             except OSError:
+                skipped += 1
                 continue
 
             h = _file_hash(file_info.path)
@@ -214,7 +216,11 @@ async def reindex(path: str | None = None, full: bool = False) -> dict:
                 continue
 
             texts = [c.embeddable_text for c in chunks]
-            embeddings = await embedder.embed_batch(texts)
+            try:
+                embeddings = await embedder.embed_batch(texts)
+            except OllamaEmbedderError:
+                skipped += 1
+                continue
 
             store_chunks = [
                 StoreChunk(
@@ -231,13 +237,16 @@ async def reindex(path: str | None = None, full: bool = False) -> dict:
         elapsed = time.monotonic() - start
         stats = store.get_stats()
 
-        return {
+        result = {
             "status": "completed",
             "indexed_files": stats["indexed_files"],
             "total_chunks": stats["total_chunks"],
             "files_processed": indexed_count,
             "elapsed_seconds": round(elapsed, 1),
         }
+        if skipped:
+            result["skipped_files"] = skipped
+        return result
     except OllamaEmbedderError as e:
         return {"status": "error", "error": str(e)}
     finally:
