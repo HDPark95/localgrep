@@ -146,10 +146,12 @@ async def _index_files(
     chunker: SlidingWindowChunker,
 ) -> None:
     """파일 목록을 인덱싱한다."""
+    skipped = 0
     for i, file_info in enumerate(files):
         try:
             content = file_info.path.read_text(encoding="utf-8", errors="replace")
         except OSError:
+            skipped += 1
             continue
 
         h = _file_hash(file_info.path)
@@ -160,7 +162,11 @@ async def _index_files(
             continue
 
         texts = [c.embeddable_text for c in chunks]
-        embeddings = await embedder.embed_batch(texts)
+        try:
+            embeddings = await embedder.embed_batch(texts)
+        except OllamaEmbedderError:
+            skipped += 1
+            continue
 
         store_chunks = [
             StoreChunk(
@@ -176,6 +182,8 @@ async def _index_files(
         if (i + 1) % 10 == 0:
             console.print(f"  진행: {i + 1}/{len(files)}")
 
+    if skipped:
+        console.print(f"  [yellow]스킵: {skipped}개 (임베딩 실패)[/yellow]")
     await embedder.close()
 
 
@@ -290,8 +298,56 @@ def watch(
     path: Optional[Path] = typer.Argument(None, help="감시할 프로젝트 경로 (기본: 현재 디렉토리)"),
 ) -> None:
     """파일 변경을 감지하여 자동으로 재인덱싱한다."""
-    console.print("[yellow]watch는 Phase 3에서 구현 예정입니다.[/yellow]")
-    raise typer.Exit(1)
+    import watchfiles
+
+    root = _resolve_root(path)
+    config = load_config(root)
+
+    console.print(f"[bold]파일 감시 시작:[/bold] {root}")
+    console.print("[dim]파일 변경 시 자동으로 증분 인덱싱합니다. Ctrl+C로 종료.[/dim]")
+
+    # 초기 인덱싱
+    console.print("[dim]초기 인덱싱 확인 중...[/dim]")
+    db = _db_path(root)
+    store = VectorStore(db)
+    if store.get_stats()["indexed_files"] == 0:
+        store.close()
+        console.print("[yellow]인덱스 없음 — 전체 인덱싱 시작[/yellow]")
+        index(path, full=True)
+    else:
+        store.close()
+        console.print(f"[green]기존 인덱스 확인됨[/green]")
+
+    # 감시 대상에서 제외할 패턴
+    ignore_dirs = {
+        "node_modules", ".git", "dist", "build", "__pycache__",
+        ".venv", "venv", ".localgrep",
+    }
+
+    def _should_ignore(change_path: str) -> bool:
+        parts = Path(change_path).parts
+        return any(d in parts for d in ignore_dirs)
+
+    console.print("[bold green]감시 중...[/bold green]")
+
+    try:
+        for changes in watchfiles.watch(str(root)):
+            relevant = [
+                (change_type, p)
+                for change_type, p in changes
+                if not _should_ignore(p)
+            ]
+            if not relevant:
+                continue
+
+            n = len(relevant)
+            console.print(f"\n[cyan]{n}개 파일 변경 감지 — 증분 인덱싱[/cyan]")
+            try:
+                index(path, full=False)
+            except SystemExit:
+                pass  # typer.Exit 무시
+    except KeyboardInterrupt:
+        console.print("\n[yellow]감시 종료[/yellow]")
 
 
 @app.command()

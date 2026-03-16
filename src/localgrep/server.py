@@ -75,7 +75,12 @@ async def semantic_search(
     db = _db_path(root)
 
     if not db.exists():
-        return {"error": "인덱스가 없습니다. 먼저 reindex를 실행하세요."}
+        # 자동 인덱싱 시도
+        auto_result = await reindex(path=str(root), full=True)
+        if auto_result.get("status") == "error":
+            return {"error": "인덱스가 없어 자동 인덱싱을 시도했으나 실패했습니다: " + auto_result.get("error", "")}
+        if not db.exists():
+            return {"error": "인덱스가 없습니다. 먼저 reindex를 실행하세요."}
 
     config = load_config(root)
     store = VectorStore(db)
